@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校草评选（带上传和评论）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <style>
+        .candidate { transition: transform 0.3s; }
+        .candidate:hover { transform: scale(1.02); }
+        .comment { animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <h1 class="text-3xl font-bold text-center mb-8">大连枫叶校草评选</h1>
+
+    <!-- 上传区域 -->
+    <div class="bg-white p-6 rounded-lg shadow mb-8">
+        <h2 class="text-xl font-bold mb-4">谁是枫叶校草</h2>
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <input type="text" id="nameInput" placeholder="请输入候选人姓名" 
+                    class="w-full p-2 border border-gray-300 rounded mb-3">
+                <input type="text" id="deptInput" placeholder="请输入性别与爱好" 
+                    class="w-full p-2 border border-gray-300 rounded mb-3">
+                <button id="addCandidate" class="bg-blue-500 text-white px-4 py-2 rounded">
+                    <i class="fa fa-plus mr-1"></i> 添加候选人
+                </button>
+            </div>
+            <div class="w-full md:w-48">
+                <label class="block text-center p-4 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:bg-gray-50">
+                    <i class="fa fa-upload text-gray-400 text-2xl mb-2"></i>
+                    <p class="text-sm text-gray-500">点击上传照片</p>
+                    <input type="file" id="photoUpload" accept="image/*" class="hidden">
+                </label>
+                <img id="previewImg" class="w-full h-40 object-cover rounded mt-2 hidden">
+            </div>
+        </div>
+    </div>
+
+    <!-- 候选人展示区 -->
+    <div id="candidatesList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
+        <!-- 初始候选人1 -->
+        <div class="candidate bg-white rounded-lg shadow p-4">
+            <img src="D:/mlsstu/xwechat_files/wxid_ybkrsjxbq0fa12_b296/temp/RWTemp/2025-11/53b4c6a83840614c699fe51715d6ad91/1793a228bdf2c761eb8356162d207785.jpg" alt="候选人" class="w-full h-56 object-cover rounded mb-3">
+            <h3 class="font-bold text-lg">葛昭然</h3>
+            <p class="text-gray-600 text-sm mb-2">十一年一班</p>
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-gray-500">票数: <span class="vote-count" data-id="1">66</span></span>
+                <button class="vote-btn bg-blue-500 text-white px-3 py-1 rounded text-sm" data-id="1">投票</button>
+            </div>
+            
+            <!-- 评论区 -->
+            <div class="border-t pt-3">
+                <div class="comments space-y-2 max-h-32 overflow-y-auto mb-2">
+                    <div class="comment text-sm bg-gray-50 p-2 rounded">
+                        <span class="font-medium">同学A：</span>
+                        <span>香香甜甜小奶狗！</span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" class="comment-input flex-1 p-1 border border-gray-300 rounded text-sm" placeholder="发表评论...">
+                    <button class="comment-btn bg-gray-200 p-1 rounded">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 初始候选人2 -->
+        <div class="candidate bg-white rounded-lg shadow p-4">
+            <img src="file:///D:/mlsstu/xwechat_files/wxid_ybkrsjxbq0fa12_b296/temp/RWTemp/2025-11/53b4c6a83840614c699fe51715d6ad91/72cf2028bd494f23ad28055e3780c4e7.png" alt="候选人" class="w-full h-56 object-cover rounded mb-3">
+            <h3 class="font-bold text-lg">赵子凯</h3>
+            <p class="text-gray-600 text-sm mb-2">火影职业玩家</p>
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-gray-500">票数: <span class="vote-count" data-id="2">95</span></span>
+                <button class="vote-btn bg-blue-500 text-white px-3 py-1 rounded text-sm" data-id="2">投票</button>
+            </div>
+            
+            <!-- 评论区 -->
+            <div class="border-t pt-3">
+                <div class="comments space-y-2 max-h-32 overflow-y-auto mb-2">
+                    <div class="comment text-sm bg-gray-50 p-2 rounded">
+                        <span class="font-medium">同学B：</span>
+                        <span>阿玛提拉斯！</span>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" class="comment-input flex-1 p-1 border border-gray-300 rounded text-sm" placeholder="发表评论...">
+                    <button class="comment-btn bg-gray-200 p-1 rounded">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示框 -->
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded opacity-0 transition-opacity duration-300"></div>
+
+    <script>
+        // 全局变量
+        let candidateId = 3; // 从3开始，因为已有2个初始候选人
+        let previewImg = null;
+
+        // 照片预览
+        document.getElementById('photoUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    previewImg = event.target.result;
+                    document.getElementById('previewImg').src = previewImg;
+                    document.getElementById('previewImg').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 添加候选人
+        document.getElementById('addCandidate').addEventListener('click', function() {
+            const name = document.getElementById('nameInput').value.trim();
+            const dept = document.getElementById('deptInput').value.trim();
+            
+            if (!name || !dept || !previewImg) {
+                showToast('请填写完整信息并上传照片', 'orange');
+                return;
+            }
+
+            // 创建新候选人卡片
+            const candidatesList = document.getElementById('candidatesList');
+            const newCandidate = document.createElement('div');
+            newCandidate.className = 'candidate bg-white rounded-lg shadow p-4';
+            newCandidate.innerHTML = `
+                <img src="${previewImg}" alt="${name}" class="w-full h-56 object-cover rounded mb-3">
+                <h3 class="font-bold text-lg">${name}</h3>
+                <p class="text-gray-600 text-sm mb-2">${dept}</p>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-gray-500">票数: <span class="vote-count" data-id="${candidateId}">0</span></span>
+                    <button class="vote-btn bg-blue-500 text-white px-3 py-1 rounded text-sm" data-id="${candidateId}">投票</button>
+                </div>
+                <div class="border-t pt-3">
+                    <div class="comments space-y-2 max-h-32 overflow-y-auto mb-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" class="comment-input flex-1 p-1 border border-gray-300 rounded text-sm" placeholder="发表评论...">
+                        <button class="comment-btn bg-gray-200 p-1 rounded">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            candidatesList.appendChild(newCandidate);
+            candidateId++;
+            
+            // 重置表单
+            document.getElementById('nameInput').value = '';
+            document.getElementById('deptInput').value = '';
+            document.getElementById('photoUpload').value = '';
+            document.getElementById('previewImg').classList.add('hidden');
+            previewImg = null;
+            
+            showToast('添加成功！', 'green');
+            bindEvents(); // 重新绑定事件
+        });
+
+        // 投票功能
+        function bindEvents() {
+            // 投票按钮
+            document.querySelectorAll('.vote-btn:not(.bound)').forEach(btn => {
+                btn.classList.add('bound');
+                btn.addEventListener('click', function() {
+                    const countEl = this.parentElement.querySelector('.vote-count');
+                    let count = parseInt(countEl.textContent);
+                    countEl.textContent = count + 1;
+                    
+                    // 按钮状态变化
+                    this.disabled = true;
+                    this.textContent = '已投票';
+                    this.classList.remove('bg-blue-500');
+                    this.classList.add('bg-gray-400');
+                    
+                    showToast('投票成功！', 'green');
+                });
+            });
+
+            // 评论功能
+            document.querySelectorAll('.comment-btn:not(.bound)').forEach(btn => {
+                btn.classList.add('bound');
+                btn.addEventListener('click', function() {
+                    const input = this.parentElement.querySelector('.comment-input');
+                    const commentText = input.value.trim();
+                    if (!commentText) return;
+
+                    const commentsContainer = this.closest('.border-t').querySelector('.comments');
+                    const newComment = document.createElement('div');
+                    newComment.className = 'comment text-sm bg-gray-50 p-2 rounded';
+                    newComment.innerHTML = `<span class="font-medium">匿名：</span><span>${commentText}</span>`;
+                    
+                    commentsContainer.appendChild(newComment);
+                    input.value = '';
+                    commentsContainer.scrollTop = commentsContainer.scrollHeight; // 滚动到底部
+                });
+            });
+
+            // 评论框回车提交
+            document.querySelectorAll('.comment-input:not(.bound)').forEach(input => {
+                input.classList.add('bound');
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        this.nextElementSibling.click();
+                    }
+                });
+            });
+        }
+
+        // 提示框功能
+        function showToast(message, type = 'green') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded opacity-100 transition-opacity duration-300`;
+            
+            if (type === 'green') toast.classList.add('bg-green-500', 'text-white');
+            if (type === 'orange') toast.classList.add('bg-orange-500', 'text-white');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 2000);
+        }
+
+        // 初始化绑定事件
+        bindEvents();
+    </script>
+</body>
+</html>
